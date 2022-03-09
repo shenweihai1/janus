@@ -15,6 +15,8 @@ sudo apt-get --assume-yes install -y \
     python3-setuptools \
     libgoogle-perftools-dev
 
+sudo pip3 install mpi
+
 
 cd ~
 wget https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.bz2
