@@ -30,6 +30,7 @@ from tabulate import tabulate
 # deptran python modules
 sys.path += os.path.abspath(os.path.join(os.path.split(__file__)[0], "./src/rrr/pylib")),
 sys.path += os.path.abspath(os.path.join(os.path.split(__file__)[0], "./src")),
+
 from simplerpc import Client
 from simplerpc.marshal import Marshal
 from deptran.rcc_rpc import ServerControlProxy
@@ -1179,7 +1180,7 @@ def build_config(options):
     config = {'args': options}
     for c in config_files:
         with open(c, 'r') as f:
-            yml = yaml.load(f)
+            yml = yaml.safe_load(f) # yaml.load(f) depends on the version of the python-yaml
             config.update(yml)
     return config
 
