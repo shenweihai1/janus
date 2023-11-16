@@ -41,7 +41,6 @@ def getNow():
     return "%s" % datetime.datetime.now()
 
 cmd_op = open("./cmds.sh", "w+")
-cmd_op.write("./batch_janus.sh 2\n./batch_janus.sh 5\nsleep 2\n\n")
 
 
 if sys.version_info < (3, 0):
@@ -57,8 +56,8 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-LOG_LEVEL = logging.DEBUG
-LOG_FILE_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
+LOG_FILE_LEVEL = logging.INFO
 logger = logging.getLogger('janus')
 
 cwd = os.getcwd()
@@ -673,22 +672,13 @@ class ServerController(object):
 
         def task_def(x, name):
             # donot need variable x
-            if "p" in name: # using taskset for server
-                t = ""
-                #if taskset % 2 == 0:
-                #    # 0, 2, 4, 6, 8
-                #    t = ",".join([str(i) for i in range(0, taskset, 2)])
-                #else:
-                #    # 1, 3, 5, 7, 9
-                #    t = ",".join([str(i) for i in range(1, taskset, 2)])
-                t = "0-" + str(taskset-1)
+            t = ""
+            t = "0-" + str(taskset-1)
 
-                if taskset == 0:
-                   return ""
-
-                return "taskset -ac " + t
-            else: # client
+            if taskset == 0:
                 return ""
+            
+            return "taskset -ac " + t
 
         self.taskset_func = task_def
 
