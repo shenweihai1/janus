@@ -131,7 +131,7 @@ if __name__ == "__main__":
         convertLeaderBasedYamlMulti(trd=trd, shards=shards)
     
     # multi-shard experiment
-    trds = 16
+    trds = 4
     shards = 2
     for shard in range(shards,shards+1):
         convertLeaderBasedYamlMulti(trd=trds, shards=shard)

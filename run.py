@@ -856,7 +856,7 @@ class ServerController(object):
 
     def gen_process_cmd(self, process, host_process_counts):
         cmd = []
-        cmd.append("cd " + deptran_home + "; ")
+        cmd.append("set +o bgnice; cd " + deptran_home + "; ")
         if "p" in process.name:
             cmd.append("ulimit -n 20000; ")
         else:
