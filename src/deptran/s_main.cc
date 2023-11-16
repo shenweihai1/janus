@@ -16,6 +16,7 @@ using namespace janus;
 static ClientControlServiceImpl *ccsi_g = nullptr;
 static rrr::PollMgr *cli_poll_mgr_g = nullptr;
 static rrr::Server *cli_hb_server_g = nullptr;
+volatile double total_throughput = 0;
 
 static vector<ServerWorker> svr_workers_g = {};
 vector<unique_ptr<ClientWorker>> client_workers_g = {};
@@ -53,7 +54,7 @@ void client_launch_workers(vector<Config::SiteInfo> &client_sites) {
     ClientWorker* worker = new ClientWorker(client_id,
                                             client_sites[client_id],
                                             Config::GetConfig(),
-                                            ccsi_g, nullptr);
+                                            ccsi_g, nullptr,&total_throughput);
     workers.push_back(worker);
     client_threads_g.push_back(std::thread(&ClientWorker::Work, worker));
     client_workers_g.push_back(std::unique_ptr<ClientWorker>(worker));
@@ -184,7 +185,7 @@ int main(int argc, char *argv[]) {
     wait_for_clients();
     Log_info("all clients have shut down.");
   }
-
+  Log_info("Total throughtput is %.2f", total_throughput);
 #ifdef DB_CHECKSUM
   sleep(90); // hopefully servers can finish hanging RPCs in 90 seconds.
 #endif

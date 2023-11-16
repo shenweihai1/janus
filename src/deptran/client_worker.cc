@@ -226,18 +226,21 @@ void ClientWorker::Work() {
   })));
 
   while (all_done_ == 0) {
-    Log_debug("wait for finish... n_ceased_cleints: %d,  "
+    Log_info("wait for finish... n_ceased_clients: %d,  "
               "n_issued: %d, n_done: %d, n_created_coordinator: %d",
               (int) n_ceased_client_.value_, (int) n_tx_issued_,
               (int) sp_n_tx_done_.value_, (int) created_coordinators_.size());
     sleep(1);
   }
 
-  Log_info("Finish:\nTotal: %u, Commit: %u, Attempts: %u, Running for %u\n",
+  Log_info("Finish:\nTotal: %u, Commit: %u, Attempts: %u, Running for %u, Throughput: %.2f, Client-id:%d\n",
            num_txn.load(),
            success.load(),
            num_try.load(),
-           Config::GetConfig()->get_duration());
+           Config::GetConfig()->get_duration(),
+           static_cast<float>(num_txn.load()) / Config::GetConfig()->get_duration(),
+           cli_id_);
+  *total_throughput_ += static_cast<float>(num_txn.load()) / Config::GetConfig()->get_duration();
   fflush(stderr);
   fflush(stdout);
 
@@ -419,7 +422,8 @@ ClientWorker::ClientWorker(
     Config::SiteInfo& site_info,
     Config* config,
     ClientControlServiceImpl* ccsi,
-    PollMgr* poll_mgr) :
+    PollMgr* poll_mgr,
+    volatile double* total_throughput) :
     id(id),
     my_site_(site_info),
     config_(config),
@@ -428,6 +432,7 @@ ClientWorker::ClientWorker(
     mode(config->get_mode()),
     duration(config->get_duration()),
     ccsi(ccsi),
+    total_throughput_(total_throughput),
     n_concurrent_(config->get_concurrent_txn()) {
   poll_mgr_ = poll_mgr == nullptr ? new PollMgr(1) : poll_mgr;
   frame_ = Frame::GetFrame(config->tx_proto_);

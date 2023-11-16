@@ -12,7 +12,7 @@ def leader_one_shard():
     for i in range(10,11):
         output = "./log/log-automate-output-" + str(i) + ".log"
         nc = 300
-        cmd = "./run.py -f par-dist/leader_paxos{trd}_shardidx0.yml -f config/tpl_ww_paxos.yml -f config/rw.yml -nc {nc} -d 30 -T {trd} > {output} 2>&1".format(trd=i+1, nc=nc, output=output)
+        cmd = "./run.py -f par-dist/leader_multi_paxos{trd}_1.yml -f config/tpl_ww_paxos.yml -f config/rw.yml -nc {nc} -d 30 -T {trd} > {output} 2>&1".format(trd=i+1, nc=nc, output=output)
         cmds.write(cmd+"\n")
         cmds.flush()
         print("start executing " + str(i) + "\n")

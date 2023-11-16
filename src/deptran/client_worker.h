@@ -31,6 +31,7 @@ class ClientWorker {
   rrr::Mutex finish_mutex{};
   rrr::CondVar finish_cond{};
   bool forward_requests_to_leader_ = false;
+  volatile double* total_throughput_;
 
   // coordinators_{mutex, cond} synchronization currently only used for open clients
   std::mutex request_gen_mutex{};
@@ -55,7 +56,8 @@ class ClientWorker {
                Config::SiteInfo &site_info,
                Config *config,
                ClientControlServiceImpl *ccsi,
-               PollMgr* mgr);
+               PollMgr* mgr,
+               volatile double* total_throughput);
   ClientWorker() = delete;
   ~ClientWorker();
   // This is called from a different thread.
