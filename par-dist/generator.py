@@ -13,8 +13,9 @@ config={
     "base_8": [(101, 12501),(201, 12601),(301, 12701)],
     "base_9": [(101, 13501),(201, 13601),(301, 13701)],
 }
-nshards = 10
+
 leaderClientsPerCore = 4 # must even
+NoleaderClientsPerCore = 3 # must 3 for Janus, and for TAPIR
 
 def getLeaderBasedShardsInfo(prefix=""):
     ips = []
@@ -122,16 +123,125 @@ host:
     f.write(content)
     f.close()
 
+# 30 for clients , 10 for the leader+p1+p2
+def getNoLeaderBasedShardsInfo(prefix=""):
+    ips = []
+    for e in open("../bash/ips.pub","r").readlines():
+        ips.append(e.strip())
+    
+    n_partitions=-1
+    with open('../bash/n_partitions', 'r') as file:
+        file_contents = file.read()
+        n_partitions = int(file_contents)
+
+    data = collections.defaultdict(list)
+    data["n_partitions"] = n_partitions
+    for i in range(n_partitions):
+        data["c1"].append(ips[n_partitions*0+i]) # learner
+        data["c2"].append(ips[n_partitions*1+i]) # localhost
+        data["c3"].append(ips[n_partitions*2+i]) # p1
+        data["p123"].append(ips[n_partitions*3+i]) # p2
+
+    return data
+
+# Janus
+# 30 for clients, 10 for leader, 10 for p1+p2
+def convertNoLeaderBasedYamlMulti(trd, shards):
+    shardInfo = getNoLeaderBasedShardsInfo("pub")
+    def getHostByName(hostname):
+        items = hostname.split("_")
+        # prefix: c1, c2, c3, localhost, p1, p2
+        prefix = items[0]
+        if "p1"==prefix or "p2"==prefix or "localhost"==prefix:
+            prefix = "p123"
+        shardIdx = int(items[1])
+        host = shardInfo[prefix][shardIdx]
+        return host
+
+    servers = ""
+    clients = ""
+    processes = ""
+    hosts = ""
+    for shardIdx in range(shards):
+        base = config["base_"+str(shardIdx)]
+
+        # servers
+        for i in range(trd): 
+            servers += '    - ["s{idx}{n0}:{p0}", "s{idx}{n1}:{p1}", "s{idx}{n2}:{p2}"]\n'.format(
+                idx=shardIdx,
+                n0=base[0][0]+i, p0=base[0][1]+i,
+                n1=base[1][0]+i, p1=base[1][1]+i,
+                n2=base[2][0]+i, p2=base[2][1]+i,
+            )
+        
+        # clients
+        for i in range(trd):
+            cc = ""
+            for j in range(1,NoleaderClientsPerCore+1):
+                cc += "c{idx}{n0}".format(idx=shardIdx,n0=100*j+i+1)
+                if j < NoleaderClientsPerCore:
+                    cc += ", "
+            clients += '    - [{c}]\n'.format(c=cc)
+
+        # processes
+        for i in range(trd):
+            processes += "  s{idx}{n0}: localhost_{idx}\n".format(idx=shardIdx,n0=base[0][0]+i)
+            processes += "  s{idx}{n1}: p1_{idx}\n".format(idx=shardIdx,n1=base[1][0]+i)
+            processes += "  s{idx}{n2}: p2_{idx}\n".format(idx=shardIdx,n2=base[2][0]+i)
+        
+        for i in range(trd):
+            for j in range(1,NoleaderClientsPerCore+1):
+                processes += "  c{idx}{n0}: c{c}_{idx}\n".format(idx=shardIdx,n0=100*j+i+1,c=j)
+
+        # hosts
+        for j in [1,2,3]:
+            hostname = "c{c}_{idx}".format(idx=shardIdx,c=j)
+            host = getHostByName(hostname)
+            hosts += "  {hostname}: {host}\n".format(hostname=hostname,host=host)
+        
+        hostname = "localhost_{idx}".format(idx=shardIdx)
+        host = getHostByName(hostname)
+        hosts += "  {hostname}: {host}\n".format(hostname=hostname,host=host)
+        hostname = "p1_{idx}".format(idx=shardIdx)
+        host = getHostByName(hostname)
+        hosts += "  {hostname}: {host}\n".format(hostname=hostname,host=host)
+        hostname = "p2_{idx}".format(idx=shardIdx)
+        host = getHostByName(hostname)
+        hosts += "  {hostname}: {host}\n".format(hostname=hostname,host=host)
+        hosts += "\n"
+
+    # there are {shards} shards and each shards has {trd} threads (each thread has one Paxos stream)
+    file_name="no_leader_multi_paxos{trd}_{shards}.yml".format(trd=trd, shards=shards)
+    content = """
+site:
+  server: 
+{s}
+  client:
+{c}
+process:
+{p}
+# process_name - host_addr map
+host:
+{h}  
+""".format(s=servers,c=clients,p=processes,h=hosts)
+    
+    f = open(file_name, "w")
+    f.write(content)
+    f.close()
+
 
 if __name__ == "__main__":
     # one-shard experiment
-    trds = 32
-    shards = 1
-    for trd in range(1, trds+1):
-        convertLeaderBasedYamlMulti(trd=trd, shards=shards)
+    # trds = 32
+    # shards = 1
+    # for trd in range(1, trds+1):
+    #     convertLeaderBasedYamlMulti(trd=trd, shards=shards)
+    #     convertNoLeaderBasedYamlMulti(trd=trd, shards=shards)
     
     # multi-shard experiment
-    trds = 4
-    shards = 2
-    for shard in range(shards,shards+1):
-        convertLeaderBasedYamlMulti(trd=trds, shards=shard)
+    trds = 32
+    shards = 10
+    for shard in range(1,shards+1):
+        for trd in range(1, trds+1):
+            convertLeaderBasedYamlMulti(trd=trd, shards=shard)
+            convertNoLeaderBasedYamlMulti(trd=trd, shards=shard)
