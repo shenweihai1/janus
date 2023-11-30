@@ -900,20 +900,40 @@ class ServerController(object):
             cmd = self.gen_process_cmd(process, host_process_counts)
             logger.debug("running: %s", cmd)
             subprocess.call(['ssh', '-f',process.host_address, cmd])
-            cmd_op.write('ssh ' + process.host_address + ' "' + cmd + '"' + "\n")
-            cmd_op.write("sleep 0.1\n\n")
-            cmd_op.flush()
-
+            
         logger.debug(self.process_infos)
 
         t_list = []
         for process_name, process in self.process_infos.items():
-            time.sleep(0.1) # avoid errors such as ssh_exchange_identification: Connection closed by remote host
-            t = Thread(target=run_one_server,
-                       args=(process, process_name, host_process_counts,))
-            t.start()
-            t_list.append(t)
+            if process_name[0] == 'c':
+                continue
+            cmd = self.gen_process_cmd(process, host_process_counts)
+            cmd_op.write('ssh ' + process.host_address + ' "' + cmd + '"' + "\n")
+            cmd_op.write("sleep 0.1\n\n")
+            cmd_op.flush()
 
+            time.sleep(0.1) # avoid errors such as ssh_exchange_identification: Connection closed by remote host
+            # t = Thread(target=run_one_server,
+            #            args=(process, process_name, host_process_counts,))
+            # t.start()
+            #t_list.append(t)
+        
+        cmd_op.write("sleep 10\n\n")
+        cmd_op.flush()
+        for process_name, process in self.process_infos.items():
+            if process_name[0] != 'c':
+                continue
+            cmd = self.gen_process_cmd(process, host_process_counts)
+            cmd_op.write('ssh ' + process.host_address + ' "' + cmd + '"' + "\n")
+            cmd_op.write("sleep 0.1\n\n")
+            cmd_op.flush()
+            time.sleep(0.1) # avoid errors such as ssh_exchange_identification: Connection closed by remote host
+            # t = Thread(target=run_one_server,
+            #            args=(process, process_name, host_process_counts,))
+            # t.start()
+            # t_list.append(t)
+
+        exit(0)
         for t in t_list:
             t.join()
 
