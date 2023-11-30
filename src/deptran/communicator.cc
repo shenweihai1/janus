@@ -199,6 +199,9 @@ void Communicator::BroadcastDispatch(
   rrr::FutureAttr fuattr;
   fuattr.callback =
       [coo, this, callback](Future* fu) {
+        if (fu->get_error_code() != 0) {
+            return;
+        }
         int32_t ret;
         TxnOutput outputs;
         fu->get_reply() >> ret >> outputs;
@@ -220,6 +223,7 @@ void Communicator::BroadcastDispatch(
         rrr::FutureAttr fu2;
         fu2.callback =
             [coo, this, callback](Future* fu) {
+            if (fu->get_error_code() != 0) { return; }
               int32_t ret;
               TxnOutput outputs;
               fu->get_reply() >> ret >> outputs;
@@ -244,6 +248,9 @@ void Communicator::SendPrepare(groupid_t gid,
   FutureAttr fuattr;
   std::function<void(Future*)> cb =
       [this, callback](Future* fu) {
+        if (fu->get_error_code() != 0) {
+            return;
+        }
         int res;
         fu->get_reply() >> res;
         callback(res);
@@ -360,6 +367,9 @@ void Communicator::SendForwardTxnRequest(
 
   FutureAttr future;
   future.callback = [callback](Future* f) {
+    if (f->get_error_code() != 0) {
+      return;
+    }
     TxReply reply;
     f->get_reply() >> reply;
     callback(reply);

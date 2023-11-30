@@ -118,6 +118,7 @@ void client_shutdown() {
 }
 
 void server_shutdown() {
+  Log_info("invoke server_shutdown()");
   for (auto &worker : svr_workers_g) {
     worker.ShutDown();
   }
@@ -189,7 +190,7 @@ int main(int argc, char *argv[]) {
 #ifdef DB_CHECKSUM
   sleep(90); // hopefully servers can finish hanging RPCs in 90 seconds.
 #endif
-
+  sleep(10000);
   for (auto& worker : svr_workers_g) {
     worker.WaitForShutdown();
   }
