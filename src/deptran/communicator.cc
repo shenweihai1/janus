@@ -19,6 +19,11 @@ Communicator::Communicator(PollMgr* poll_mgr) {
   auto config = Config::GetConfig();
   vector<parid_t> partitions = config->GetAllPartitionIds();
   for (auto& par_id : partitions) {
+    if (!(par_id < config->num_threads_per_shard*(config->phy_shard_id+1) 
+          && par_id >= config->num_threads_per_shard*config->phy_shard_id)){
+      continue;
+    }
+
     auto site_infos = config->SitesByPartitionId(par_id);
     vector<std::pair<siteid_t, ClassicProxy*>> proxies;
     for (auto& si : site_infos) {

@@ -27,6 +27,12 @@ class Config {
 
  public:
 
+  // for no-cross shard transaction
+  int phy_shard_id = -1;
+  int num_shards = 3;
+  int num_threads_per_shard = 20;
+
+
   static Config *config_s;
   void init_hostsmap(const char *hostspath);
   std::string site2host_addr(std::string &name);

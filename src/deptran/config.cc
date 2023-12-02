@@ -207,6 +207,10 @@ int Config::CreateConfig(int argc, char **argv) {
     single_server,
     logging_path);
   config_s->proc_name_ = proc_name;
+  size_t lastUnderscore = proc_name.find_last_of('_');
+  std::string sid_str = proc_name.substr(lastUnderscore + 1);
+  config_s->phy_shard_id = std::stoi(sid_str);
+
   config_s->config_paths_ = config_paths;
   config_s->Load();
   return SUCCESS;

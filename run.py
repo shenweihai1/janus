@@ -41,6 +41,8 @@ def getNow():
     return "%s" % datetime.datetime.now()
 
 cmd_op = open("./cmds.sh", "w+")
+cmd_op.write("rm ./log/*.err ./log/*.log\n")
+cmd_op.flush()
 
 
 if sys.version_info < (3, 0):
@@ -870,7 +872,6 @@ class ServerController(object):
 
         s = "nohup " + self.taskset_func(host_process_counts[process.host_address], process.name) + \
             " ./build/deptran_server " + \
-            "-b " + \
             "-d " + str(self.config['args'].c_duration) + " " + \
             "-n " + str(self.config['args'].n_concurrent) + " "
 
