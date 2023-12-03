@@ -32,6 +32,7 @@ Communicator::Communicator(PollMgr* poll_mgr) {
       verify(result.first == SUCCESS);
       proxies.push_back(std::make_pair(si.id, result.second));
     }
+    //Log_info("connect to partition %d, size:%llu", par_id, proxies.size());
     rpc_par_proxies_.insert(std::make_pair(par_id, proxies));
   }
   client_leaders_connected_.store(false);
@@ -190,6 +191,7 @@ Communicator::NearestProxyForPartition(parid_t par_id) const {
   auto it = rpc_par_proxies_.find(par_id);
   verify(it != rpc_par_proxies_.end());
   auto& partition_proxies = it->second;
+  //Log_info("nearest proxy for partition %d, loc_id_:%d, size:%d", par_id, loc_id_, partition_proxies.size());
   verify(partition_proxies.size() > loc_id_);
   int index = loc_id_;
   return partition_proxies[index];

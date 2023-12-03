@@ -15,6 +15,9 @@ void TroadCommo::SendDispatch(vector<TxPieceData>& cmd,
   auto par_id = cmd[0].partition_id_;
   std::function<void(Future*)> cb =
       [callback, tid, par_id](Future* fu) {
+        if (fu->get_error_code() != 0) {
+          return;
+        }
         int res;
         TxnOutput output;
         MarshallDeputy md;
@@ -55,6 +58,9 @@ void TroadCommo::SendInquire(parid_t pid,
                              const function<void(RccGraph& graph)>& callback) {
   FutureAttr fuattr;
   function<void(Future*)> cb = [callback](Future* fu) {
+    if (fu->get_error_code() != 0) {
+      return;
+    }
     MarshallDeputy md;
     fu->get_reply() >> md;
     verify(0);
@@ -86,6 +92,9 @@ void TroadCommo::BroadcastPreAccept(
     verify(proxy != nullptr);
     FutureAttr fuattr;
     fuattr.callback = [callback](Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int32_t res;
       MarshallDeputy md;
       fu->get_reply() >> res >> md;
@@ -122,6 +131,9 @@ TroadCommo::BroadcastPreAccept(
     verify(proxy != nullptr);
     FutureAttr fuattr;
     fuattr.callback = [ev](Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int32_t res;
       auto sp = std::make_shared<parent_set_t>();
       fu->get_reply() >> res >> *sp;
@@ -164,6 +176,9 @@ TroadCommo::BroadcastPreAccept(
     verify(proxy != nullptr);
     FutureAttr fuattr;
     fuattr.callback = [ev](Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int32_t res;
       MarshallDeputy md;
       fu->get_reply() >> res >> md;
@@ -205,6 +220,9 @@ void TroadCommo::BroadcastAccept(parid_t par_id,
     verify(proxy != nullptr);
     FutureAttr fuattr;
     fuattr.callback = [callback](Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int32_t res;
       fu->get_reply() >> res;
       callback(res);
@@ -235,6 +253,9 @@ shared_ptr<QuorumEvent> TroadCommo::BroadcastAccept(parid_t par_id,
     verify(proxy != nullptr);
     FutureAttr fuattr;
     fuattr.callback = [ev](Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int32_t res;
       fu->get_reply() >> res;
       if (res == SUCCESS) {
@@ -269,6 +290,9 @@ shared_ptr<QuorumEvent> TroadCommo::BroadcastAccept(parid_t par_id,
     verify(proxy != nullptr);
     FutureAttr fuattr;
     fuattr.callback = [ev](Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int32_t res;
       fu->get_reply() >> res;
       if (res == SUCCESS) {
@@ -300,6 +324,9 @@ shared_ptr<QuorumEvent> TroadCommo::CollectValidation(txid_t txid, set<parid_t> 
     auto proxy = NearestProxyForPartition(partition_id).second;
     FutureAttr fuattr;
     fuattr.callback = [ev] (Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int res;
       fu->get_reply() >> res;
       if (res == SUCCESS) {
@@ -347,6 +374,9 @@ void TroadCommo::BroadcastCommit(
     verify(proxy != nullptr);
     FutureAttr fuattr;
     fuattr.callback = [callback](Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int32_t res;
       TxnOutput output;
       fu->get_reply() >> res >> output;
@@ -377,6 +407,9 @@ TroadCommo::BroadcastCommit(parid_t par_id,
     verify(proxy != nullptr);
     FutureAttr fuattr;
     fuattr.callback = [ev](Future* fu) {
+      if (fu->get_error_code() != 0) {
+        return;
+      }
       int32_t res;
       TxnOutput output;
       fu->get_reply() >> res >> output;
