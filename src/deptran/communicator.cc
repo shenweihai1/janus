@@ -100,6 +100,7 @@ Communicator::LeaderProxyForPartition(parid_t par_id) const {
   if (leader_it != leader_cache.end()) {
     return leader_it->second;
   } else {
+    //Log_info("start a par_id:%d, phy-id:%d", par_id, Config::GetConfig()->phy_shard_id);
     auto it = rpc_par_proxies_.find(par_id);
     verify(it != rpc_par_proxies_.end());
     auto& partition_proxies = it->second;

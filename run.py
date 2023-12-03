@@ -919,7 +919,7 @@ class ServerController(object):
             # t.start()
             #t_list.append(t)
         
-        cmd_op.write("sleep 10\n\n")
+        cmd_op.write("sleep 10\necho 'start clients...'\n")
         cmd_op.flush()
         for process_name, process in self.process_infos.items():
             if process_name[0] != 'c':

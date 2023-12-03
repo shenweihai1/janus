@@ -206,7 +206,7 @@ parid_t TpccProcedure::GetPiecePartitionId(innid_t inn_id) {
       vars.push_back(ws_.at(var_id));
     }
     MultiValue mv = MultiValue(vars);
-    sss_->GetPartition(tb, mv, partition_id);
+    sss_->GetPartition(tb, mv, partition_id); // update the partition_id
   } else {
     verify(0);
     partition_id = sharding_[inn_id];

@@ -81,12 +81,12 @@ parid_t Sharding::PartitionFromKey(const MultiValue &key,
        stock_mapping(key) :
        (tb_info->tb_name != TPCC_TB_HISTORY ?
         dist_mapping(key) : key));
-
+  //std::cout<<"benchmark:"<<Config::GetConfig()->benchmark()<<", k:"<<key[0].get_i32()<<", k_b:"<<key_buf[0].get_i32()<<std::endl;
   const int num_partitions = Config::GetConfig()->replica_groups_.size();
   uint32_t ret;
 
   switch (tb_info->sharding_method) {
-    case MODULUS:
+    case MODULUS: // using this mode
       ret = modulus(key_buf, num_partitions);
       break;
 
@@ -109,6 +109,7 @@ uint32_t Sharding::modulus(const MultiValue &key, uint32_t num_partitions) {
   while (i < key.size()) {
     switch (key[i].get_kind()) {
       case Value::I32:
+        //std::cout<<"real val:"<<key[i].get_i32()<<std::endl;
         buf = key[i].get_i32() % num_partitions;
         index += buf > 0 ? (uint32_t) buf : (uint32_t) (-buf);
         break;

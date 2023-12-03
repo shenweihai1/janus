@@ -156,6 +156,7 @@ ReadyPiecesData TxData::GetReadyPiecesData(int32_t max) {
       shared_ptr<TxPieceData> piece_data = std::make_shared<TxPieceData>();
       piece_data->inn_id_ = pi;
       piece_data->partition_id_ = GetPiecePartitionId(pi);
+      //std::cout<<"GetPiecePartitionId par_id:"<<piece_data->partition_id_<<std::endl;
       piece_data->type_ = pi;
       piece_data->root_id_ = id_;
       piece_data->root_type_ = type_;

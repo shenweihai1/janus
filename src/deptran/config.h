@@ -30,7 +30,7 @@ class Config {
   // for no-cross shard transaction
   int phy_shard_id = -1;
   int num_shards = 3;
-  int num_threads_per_shard = 20;
+  int num_threads_per_shard = 10;
 
 
   static Config *config_s;

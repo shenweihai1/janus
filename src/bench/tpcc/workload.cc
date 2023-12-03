@@ -82,7 +82,8 @@ void TpccWorkload::GetNewOrderTxnReq(TxRequest *req,
   for (int i = 0; i < ol_cnt; i++) {
     //req->input_[4 + 3 * i] = Value((i32)RandomGenerator::nu_rand(8191, 0, tpcc_para_.n_i_id_ - 1)); XXX nurand is the standard
     rrr::i32
-        tmp_i_id = (i32) RandomGenerator::rand(0, tpcc_para_.n_i_id_ - 1 - i);
+        tmp_i_id = (i32) RandomGenerator::rand(0, tpcc_para_.n_i_id_ - 500);
+    //std::cout<<"tpcc_para_.n_i_id_:"<<tpcc_para_.n_i_id_<<",i"<<i<<std::endl;
 
     int pre_n_less = 0, n_less = 0;
     while (true) {
@@ -95,6 +96,8 @@ void TpccWorkload::GetNewOrderTxnReq(TxRequest *req,
       tmp_i_id += (n_less - pre_n_less);
       pre_n_less = n_less;
     }
+    tmp_i_id = tpcc_para_.n_w_id_ * (tmp_i_id / tpcc_para_.n_w_id_);
+    tmp_i_id += home_w_id;
 
     i_id_buf[i] = tmp_i_id;
     req->input_[TPCC_VAR_I_ID(i)] = Value(tmp_i_id);
@@ -102,7 +105,7 @@ void TpccWorkload::GetNewOrderTxnReq(TxRequest *req,
     req->input_[TPCC_VAR_OL_DELIVER_D(i)] = std::string();
     req->input_[TPCC_VAR_OL_DIST_INFO(i)] = std::string();
 
-    if (tpcc_para_.n_w_id_ > 1 && // warehouse more than one, can do remote
+    if (false && tpcc_para_.n_w_id_ > 0 && // warehouse more than one, can do remote
         RandomGenerator::percentage_true(1)) { //XXX 1% REMOTE_RATIO
       int remote_w_id = RandomGenerator::rand(0, tpcc_para_.n_w_id_ - 2);
       remote_w_id = remote_w_id >= home_w_id ? remote_w_id + 1 : remote_w_id;
@@ -129,6 +132,7 @@ void TpccWorkload::get_tpcc_payment_txn_req(
   req->tx_type_ = TPCC_PAYMENT;
   //int home_w_id = RandomGenerator::rand(0, tpcc_para_.n_w_id_ - 1);
   int home_w_id = cid % tpcc_para_.n_w_id_;
+  //std::cout<<"home_w_id:"<<home_w_id<<", tol:"<<tpcc_para_.n_w_id_<<std::endl;
   Value c_w_id, c_d_id;
   Value w_id((i32) home_w_id);
   //Value d_id((i32)RandomGenerator::rand(0, tpcc_para_.n_d_id_ - 1));
@@ -141,7 +145,7 @@ void TpccWorkload::get_tpcc_payment_txn_req(
     req->input_[TPCC_VAR_C_ID] =
         Value((i32) RandomGenerator::nu_rand(1022, 0, tpcc_para_.n_c_id_ - 1));;
   }
-  if (tpcc_para_.n_w_id_ > 1 && // warehouse more than one, can do remote
+  if (false && tpcc_para_.n_w_id_ > 1 && // warehouse more than one, can do remote
       RandomGenerator::percentage_true(15)) { //XXX 15% pay through remote warehouse, 85 home REMOTE_RATIO
     int c_w_id_int = RandomGenerator::rand(0, tpcc_para_.n_w_id_ - 2);
     c_w_id_int = c_w_id_int >= home_w_id ? c_w_id_int + 1 : c_w_id_int;
@@ -158,7 +162,10 @@ void TpccWorkload::get_tpcc_payment_txn_req(
   req->input_[TPCC_VAR_C_W_ID] = c_w_id;
   req->input_[TPCC_VAR_C_D_ID] = c_d_id;
   req->input_[TPCC_VAR_H_AMOUNT] = h_amount;
-  req->input_[TPCC_VAR_H_KEY] = Value((i32) RandomGenerator::rand()); // h_key
+  auto x =  RandomGenerator::rand();
+  x = tpcc_para_.n_w_id_ * (x / tpcc_para_.n_w_id_);
+  x += home_w_id;
+  req->input_[TPCC_VAR_H_KEY] = Value((i32)x); // h_key
 //  req->input_[TPCC_VAR_W_NAME] = Value();
 //  req->input_[TPCC_VAR_D_NAME] = Value();
 }
@@ -201,7 +208,13 @@ void TpccWorkload::get_tpcc_order_status_txn_req(
 
 
 void TpccWorkload::GetTxRequest(TxRequest* req, uint32_t cid) {
+  int w_id_offset_ = RandomGenerator::rand(0, Config::GetConfig()->num_threads_per_shard - 1);
+  int n_partitions = Config::GetConfig()->num_shards * Config::GetConfig()->num_threads_per_shard;
+  cid = n_partitions * (cid / n_partitions);
+  int par_id = Config::GetConfig()->phy_shard_id*Config::GetConfig()->num_threads_per_shard + w_id_offset_;
+  cid += par_id;
   req->n_try_ = n_try_;
+  //Log_info("cid:%d,par_id:%d,phy_id:%d,n_partitions:%d",cid,par_id,Config::GetConfig()->phy_shard_id,n_partitions);
   if (txn_weight_.size() != 5) {
     verify(0);
     GetNewOrderTxnReq(req, cid);
