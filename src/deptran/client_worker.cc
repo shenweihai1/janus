@@ -246,6 +246,9 @@ void ClientWorker::Work() {
            Config::GetConfig()->get_duration(),
            static_cast<float>(num_txn.load()) / Config::GetConfig()->get_duration(),
            cli_id_);
+  Log_info("Finish:\nTPUT:\t%.2f\tClient-id:%d\n",
+           static_cast<float>(num_txn.load()) / Config::GetConfig()->get_duration(),
+           cli_id_);
   *total_throughput_ += static_cast<float>(num_txn.load()) / Config::GetConfig()->get_duration();
   fflush(stderr);
   fflush(stdout);
