@@ -7,7 +7,7 @@ servers=(
 )
 
 cmd1="" 
-cmd2="skill deptran_server; pkill deptran_server; skill deptran_server; pkill deptran_server; sleep 1; "
+cmd2="skill deptran_server; pkill deptran_server; skill deptran_server; pkill deptran_server; skill gdb; sleep 1; "
 cmd3="cd ~/janus && ./install_janus.sh"
 cmd4="ps aux|grep deptran_server; hostname; echo ''" 
 cmd5="cd ~/janus/log && rm -rf *"
